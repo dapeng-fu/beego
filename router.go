@@ -617,7 +617,7 @@ func (p *ControllerRegistor) ServeHTTP(rw http.ResponseWriter, r *http.Request) 
 					if ok, params := filterR.ValidRouter(urlPath); ok {
 						for k, v := range params {
 							if context.Input.Params == nil {
-								context.Input.Params = make(map[string]string)	
+								context.Input.Params = make(map[string]string)
 							}
 							context.Input.Params[k] = v
 						}
@@ -702,9 +702,7 @@ func (p *ControllerRegistor) ServeHTTP(rw http.ResponseWriter, r *http.Request) 
 						p[strconv.Itoa(k)] = v
 					}
 				}
-				if p != nil {
-					context.Input.Params = p
-				}
+				context.Input.Params = p
 			}
 		}
 
@@ -717,6 +715,9 @@ func (p *ControllerRegistor) ServeHTTP(rw http.ResponseWriter, r *http.Request) 
 	}
 
 	if findrouter {
+		//dapeng: insert runcontroller and runmethod into context
+		insertControllerAndMethod(context, routerInfo, r.Method)
+
 		//execute middleware filters
 		if do_filter(BeforeExec) {
 			goto Admin
@@ -940,4 +941,22 @@ func tourl(params map[string]string) string {
 		u += k + "=" + v + "&"
 	}
 	return strings.TrimRight(u, "&")
+}
+
+//dapeng
+func insertControllerAndMethod(ctx *beecontext.Context, runroute *controllerInfo, method string) {
+	ctx.Input.RunController = runroute.controllerType
+
+	var runMethod string
+	if m, ok := runroute.methods[method]; ok {
+		runMethod = m
+	} else if m, ok = runroute.methods["*"]; ok {
+		runMethod = m
+	} else {
+		runMethod = method
+	}
+
+	ctx.Input.RunMethod = runMethod
+
+	println("method is ", runMethod)
 }
