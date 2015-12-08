@@ -128,8 +128,13 @@ func (t *Tree) addtree(segments []string, tree *Tree, wildcards []string, reg st
 		reg = strings.TrimRight(strings.TrimRight(reg, "/")+"/"+regexpStr, "/")
 		t.wildcard.addtree(segments[1:], tree, append(wildcards, params...), reg)
 	} else {
-		subTree := NewTree()
-		t.fixrouters[seg] = subTree
+		var subTree *Tree
+		if existedTree, found := t.fixrouters[seg]; !found {
+			subTree = NewTree()
+			t.fixrouters[seg] = subTree
+		}else{
+			subTree = existedTree
+		}
 		subTree.addtree(segments[1:], tree, append(wildcards, params...), reg)
 	}
 }
